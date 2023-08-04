@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mywebapp
+  labels:
+    app: mywebapp
+spec:
+  ports:
+  - port: 80
+    targetPort: 8080
+    protocol: TCP
+    name: gohttp
+  selector:
+    app: mywebapp
+    tier: http
+  type: LoadBalancer
+---
+kind: ConfigMap 
+apiVersion: v1 
+metadata:
+  name: myconfigmapv1.0
+data:
+  BG_COLOR: 'steelblue'
+  HEADING_COLOR: 'white'
+  HEADING_TEXT: 'Kubernetes Golang HTTP Server - refresh to see updated served from'
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mydeployment
+  labels:
+    app: mywebapp
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: mywebapp
+      tier: http
+  template:
+    metadata:
+      labels:
+        app: mywebapp
+        tier: http
+    spec:
+      containers:
+      - name: mycontainer
+        image: philyawj/go-k8s-http-server
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 80
+        envFrom:
+        - configMapRef:
+            name: myconfigmapv1.0
